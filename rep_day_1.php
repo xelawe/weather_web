@@ -148,6 +148,39 @@ while ($array=mysql_fetch_array($result)) {
 	}
 }; 
 
+// Blitze
+$result = mysql_query("select unix_timestamp(timestamp)
+						, ROUND(value,0)
+						, extract(HOUR FROM timestamp)
+						, sensor_id
+						from weather_vals 
+						where timestamp >= timestamp(date_sub(Now(), INTERVAL 1 DAY))
+						and sensor_id = 21 
+						ORDER BY timestamp, id");
+
+$i=0;
+$j=0;
+$k=0;
+$l=0;
+$m=0;
+$n=0;
+$xdata21=array();
+$ydata21=array();
+
+
+while ($array=mysql_fetch_array($result)) {
+//	$xdatat[$l]=$array[0];
+	$l++;
+	switch ($array[3]) {
+	case 21:
+		$xdata21[$n]=$array[0];
+		$ydata21[$n]=$array[1];
+		$n++; 
+		break;
+
+	}
+}; 
+
 $result = mysql_query("select unix_timestamp(timestamp(str_to_date(concat(DATE_FORMAT(timestamp,'%d-%m-'),year(timestamp)+1,DATE_FORMAT(timestamp,' %H:%i:%s')),'%d-%m-%Y %H:%i:%s')))
 						, ROUND(avg(value),1)
 						, extract(HOUR FROM timestamp)
@@ -251,6 +284,11 @@ if (count($xdatas13) > 0){
 	    $y++;
 }
 
+if (count($xdata21) > 0){
+	$graph->SetYScale($y,'lin',0,50); 
+	$y++;
+}
+
 $graph->xaxis->SetPos('min');
 
 $dateUtils = new DateScaleUtils();
@@ -279,13 +317,13 @@ $lineplot -> SetLegend ($gc_legend_ot);
 //$lineplot2=new LinePlot($ydata2,$xdata2);
 //$lineplot2->SetColor('green');
 //$lineplot2->setWeight(2);
-//$lineplot2 -> SetLegend("Innentemperatur ".$act_val2." °C");
+//$lineplot2 -> SetLegend("Innentemperatur ".$act_val2." Â°C");
 
 // Add the plot to the graph
 $graph->Add($lineplot);
 //$graph->Add($lineplot2);
 $graph->yaxis->SetColor(gray3);
-$graph->yaxis->title->Set("°C");
+$graph->yaxis->title->Set("Â°C");
 $graph->yaxis->title->SetColor(gray3);
 
 
@@ -334,8 +372,7 @@ if (count($xdata6) > 0){
     $y++;
 }
 
-$lv_rain_axis = 0;
-
+$raindata8 = 0;
 if (count($xdata8) > 0){
 
 	$lineplot8=new LinePlot($ydata8,$xdata8);
@@ -349,7 +386,8 @@ if (count($xdata8) > 0){
 	$graph->ynaxis[$y]->title->Set("mm");
 	$graph->ynaxis[$y]->title->SetColor("darkgreen");
     $graph->ynaxis[$y]->title->SetMargin(5);
-	$lv_rain_axis = 1;
+	
+	$raindata8 = 1;
 }
 
 if (count($xdata9) > 0){
@@ -360,17 +398,19 @@ if (count($xdata9) > 0){
 
 	$lineplot9 -> SetLegend($gc_legend_rfd); 
 
-	//if ($lv_rain_axis == 0){
-		$graph->AddY($y,$lineplot9);
-		$graph->ynaxis[$y]->SetColor("darkolivegreen3");
-		$graph->ynaxis[$y]->title->Set("mm");
-		$graph->ynaxis[$y]->title->SetColor("darkolivegreen3");
-		$graph->ynaxis[$y]->title->SetMargin(5);
-		//$y++;
-	//}
+	$graph->AddY($y,$lineplot9);
+	if ( $raindata8 == 0){
+		
+	//$graph->ynaxis[$y]->SetColor("darkolivegreen3");
+	//$graph->ynaxis[$y]->title->Set("mm");
+	//$graph->ynaxis[$y]->title->SetColor("darkolivegreen3");
+	//$graph->ynaxis[$y]->title->SetMargin(5);
+	}
+
 	$y++;
 
 }
+
 
 if (count($xdatas13) > 0){
 
@@ -387,6 +427,25 @@ if (count($xdatas13) > 0){
     $graph->ynaxis[$y]->title->SetMargin(5);	
     $y++;
 }
+
+if (count($xdata21) > 0){
+
+	$scatplot21=new ScatterPlot($ydata21,$xdata21);
+	$scatplot21->SetColor('yellow');
+	$scatplot21->setWeight(2);
+	$scatplot21->mark->SetType(MARK_FLASH);
+	$scatplot21->mark->SetFillColor("yellow@.3");
+	//	$scatplot21->SetFillFromYMin();
+	$scatplot21 -> SetLegend('Blitze'); 
+
+	$graph->AddY($y,$scatplot21);
+	$graph->ynaxis[$y]->SetColor("yellow");
+	$graph->ynaxis[$y]->title->Set("hPa");
+	$graph->ynaxis[$y]->title->SetColor("yellow");
+	$graph->ynaxis[$y]->title->SetMargin(15);
+    $y++;
+}
+
 
 $lineplotmi = new LinePlot($ydatami,$xdatami);
 $lineplotmi->mark->SetType(MARK_UTRIANGLE);
